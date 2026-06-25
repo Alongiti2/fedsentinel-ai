@@ -1,6 +1,5 @@
 # FedSentinel-AI — GitHub Actions CI/CD Pipeline
 # Deploys to GCP Cloud Run via OIDC (no static credentials)
-
 name: FedSentinel-AI Deploy
 
 on:
@@ -12,7 +11,7 @@ on:
 env:
   PROJECT_ID: cis410-delphin
   REGION: us-central1
-  SERVICE_NAME: fedsentinel-ai
+  SERVICE_NAME: fedsentinel-api
   REGISTRY: us-central1-docker.pkg.dev
 
 jobs:
@@ -21,7 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Run Snyk SAST Scan
         uses: snyk/actions/python@master
         continue-on-error: true
@@ -35,7 +33,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-
     steps:
       - uses: actions/checkout@v4
 
@@ -50,18 +47,17 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t $REGISTRY/$PROJECT_ID/cis410-repo/$SERVICE_NAME:$GITHUB_SHA .
+          docker build -t $REGISTRY/$PROJECT_ID/fedsentinel-ai/api:$GITHUB_SHA .
 
-      - name: Push Docker image
+      - name: Push to Artifact Registry
         run: |
-          gcloud auth configure-docker $REGISTRY --quiet
-          docker push $REGISTRY/$PROJECT_ID/cis410-repo/$SERVICE_NAME:$GITHUB_SHA
+          gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
+          docker push $REGISTRY/$PROJECT_ID/fedsentinel-ai/api:$GITHUB_SHA
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy $SERVICE_NAME \
-            --image $REGISTRY/$PROJECT_ID/cis410-repo/$SERVICE_NAME:$GITHUB_SHA \
+            --image $REGISTRY/$PROJECT_ID/fedsentinel-ai/api:$GITHUB_SHA \
             --region $REGION \
             --platform managed \
-            --allow-unauthenticated \
-            --project $PROJECT_ID
+            --allow-unauthenticated
