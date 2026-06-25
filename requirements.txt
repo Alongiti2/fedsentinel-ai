@@ -11,7 +11,7 @@ google-cloud-pubsub==2.21.4
 google-cloud-secret-manager==2.20.0
 
 # AI / ML
-vertexai==1.59.0
+vertexai==1.60.0
 
 # Data Processing
 pandas==2.2.2
